@@ -38,9 +38,11 @@ class ZebraEngineEventHandler {
         readRfidCallback?.call(list);
         break;
       case 'batterieData':
-        print("----------------------------------------------------");
+        List<dynamic> batData = map["datas"];
+        List<String> results = batData[0] ?? [];
+
         print(map);
-        //readBatterieCallback?.call(map);
+        readBatterieCallback?.call(results);
         break;
       case 'Error':
         var ss = ErrorResult.fromJson(map);

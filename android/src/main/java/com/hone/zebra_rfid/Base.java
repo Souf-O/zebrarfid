@@ -27,6 +27,7 @@ public class Base {
     public  static  class RfidEngineEvents{
         static String Error = "Error";
         static String ReadRfid = "ReadRfid";
+        static String batterieData = "batterieData";
         static String ConnectionStatus = "ConnectionStatus";
     }
 

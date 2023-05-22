@@ -2,7 +2,9 @@ package com.hone.zebra_rfid;
 
 import android.content.Context;
 import android.util.Log;
+import java.util.List;
 import android.widget.Toast;
+
 
 import androidx.annotation.NonNull;
 
@@ -13,6 +15,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+
 
 /**
  * ZebraRfidPlugin
@@ -58,7 +61,8 @@ public class ZebraRfidPlugin implements FlutterPlugin, MethodCallHandler, Stream
                 rfidHandler.connect(result);
                 break;
             case "getReadersList":
-                rfidHandler.getReadersList();
+                List y = rfidHandler.getReadersList();                
+                result.success(y);
                 break;
 
             case "disconnect":
@@ -80,6 +84,25 @@ public class ZebraRfidPlugin implements FlutterPlugin, MethodCallHandler, Stream
             case "stopLocate" : 
                 rfidHandler.stopLocate();
                 break ;     
+            case "getbatterie":
+                int x = rfidHandler.getBatteryLevel();
+                result.success(x);
+                break ;    
+            case "setBeeperVolume":
+                int i =   call.argument("volume"); 
+                int j =rfidHandler.setBeeperVolume(i);
+                result.success(j);
+                break;
+            // case "getBeeperVolume":
+            //     String z = rfidHandler.getBeeperVolume();
+            //     result.success(z);
+
+            //     break;    
+            case "enableLED":
+                int enable = call.argument("enable");
+                int led = rfidHandler.enableLED(enable);
+                result.success(led);
+                break;    
             case "getPower":
                 int power = rfidHandler.getMaxPower();
                 result.success(power);

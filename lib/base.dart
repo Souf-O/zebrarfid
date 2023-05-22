@@ -4,16 +4,21 @@ part 'base.g.dart';
 
 typedef ErrorCallback = void Function(ErrorResult err);
 typedef ReadRfidCallback = void Function(List<RfidData> datas);
+typedef ReadBatterieCallback = void Function(List datas);
 typedef ConnectionStatusCallback = void Function(ReaderConnectionStatus status);
 
 class ZebraEngineEventHandler {
   ZebraEngineEventHandler(
       {this.readRfidCallback,
       this.errorCallback,
+      this.readBatterieCallback,
       this.connectionStatusCallback});
 
   ///Read rfid tag callback
   ReadRfidCallback? readRfidCallback;
+
+  ///Batterie read info
+  ReadBatterieCallback? readBatterieCallback;
 
   ///Connection Status
   ConnectionStatusCallback? connectionStatusCallback;
@@ -31,6 +36,11 @@ class ZebraEngineEventHandler {
           list.add(RfidData.fromJson(Map<String, dynamic>.from(rfidDatas[i])));
         }
         readRfidCallback?.call(list);
+        break;
+      case 'batterieData':
+        print("----------------------------------------------------");
+        print(map);
+        //readBatterieCallback?.call(map);
         break;
       case 'Error':
         var ss = ErrorResult.fromJson(map);

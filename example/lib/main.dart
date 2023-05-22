@@ -21,6 +21,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String? _platformVersion = 'Unknown';
   int power = 200;
+  dynamic yy = 0;
 
   bool isZebraConnected = false;
 
@@ -116,15 +117,12 @@ class _MyAppState extends State<MyApp> {
               ),
               MaterialButton(
                 onPressed: () async {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Locate()),
-                  );
+                  yy = await ZebraRfid.enableLED(1);
                   setState(() {
                     rfidDatas = {};
                   });
                 },
-                child: Text("clear"),
+                child: Text("clear + \n "),
               ),
               MaterialButton(
                 onPressed: () async {
@@ -141,6 +139,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text("stop"),
               ),
             ]),
+            Text(yy.toString()),
             Slider(
                 max: powerMax / 1000,
                 min: powerMin / 1000,

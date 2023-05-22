@@ -28,9 +28,14 @@ import com.zebra.rfid.api3.STATUS_EVENT_TYPE;
 import com.zebra.rfid.api3.STOP_TRIGGER_TYPE;
 import com.zebra.rfid.api3.TagData;
 import com.zebra.rfid.api3.TriggerInfo;
+import com.zebra.rfid.api3.Events;
+import com.zebra.rfid.api3.BEEPER_VOLUME;
+
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -55,6 +60,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     private IEventHandler eventHandler = new IEventHandler();
     private Function<String, Map<String, Object>> _emit;
     private EventChannel.EventSink sink = null;
+
 
 
     private void emit(final String eventName, final HashMap map) {
@@ -257,18 +263,90 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     }
 
 
+    public int getBatteryLevel() {
+        if (isReaderConnected()) {
+            try {
+                reader.Events.setBatteryEvent(true);
+                reader.Config.getDeviceStatus(true, true, false);
+                return 1;
+            } catch (InvalidUsageException | OperationFailureException e) {
+                e.printStackTrace();
+            }
+        }
+        return -1; // Return a default value or handle the error case appropriately
+    }
+
+    public int setBeeperVolume(int type) {
+        if (isReaderConnected()) {
+            try {
+                if(type == 0 ) {               
+                    reader.Config.setBeeperVolume(BEEPER_VOLUME.QUIET_BEEP);
+                    return 0;
+                } else if( type == 1 ){
+                    reader.Config.setBeeperVolume(BEEPER_VOLUME.LOW_BEEP);
+                    return 1;
+                }else if( type == 2 ){
+                    reader.Config.setBeeperVolume(BEEPER_VOLUME.MEDIUM_BEEP);
+                    return 2;
+                } else if( type == 3 ){
+                    reader.Config.setBeeperVolume(BEEPER_VOLUME.HIGH_BEEP);
+                    return 3;
+                }
+                
+            } catch (InvalidUsageException | OperationFailureException e) {
+                e.printStackTrace();
+            }
+        }
+        return -1; // Return a default value or handle the error case appropriately
+    }
+
+    public int enableLED(int i ) {
+        if (isReaderConnected()) {
+            try {
+                Log.d("getting Led enabled : " ,  "Starting ...." );
+                if(i == 1 ) {
+                    reader.Config.setLedBlinkEnable(true);
+                    return 1;
+                } else if(i == 0 ){
+                    reader.Config.setLedBlinkEnable(false);
+                    return 0;
+                }    
+            } catch (InvalidUsageException | OperationFailureException e) {
+                e.printStackTrace();
+            }
+        }
+        return -1; // Return a default value or handle the error case appropriately
+    }
+    
+
+
+
+
+
+
     ///获取读取器信息
-    public   ArrayList<ReaderDevice> getReadersList() {
+    public   List getReadersList() {
         ArrayList<ReaderDevice> readersListArray=new  ArrayList<ReaderDevice>();
+        List<HashMap<String, Object>> items = new ArrayList<>();
+
         try {
             if(readers!=null) {
-                 readersListArray = readers.GetAvailableRFIDReaderList();
-                return readersListArray;
+                readersListArray = readers.GetAvailableRFIDReaderList();
+                Log.d("readersListArray",String.valueOf(readersListArray.size()));
+
+                for (ReaderDevice reader : readersListArray) {
+                    HashMap<String, Object> item = new HashMap<>();
+                    item.put("name", reader.getName());
+                    item.put("id", reader.getAddress());
+                    items.add(item);
+                }
+
+                return items;
             }
         }catch (InvalidUsageException e){
 //            emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
         }
-        return  readersListArray;
+        return  items;
     }
 
 
@@ -333,6 +411,25 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                     }
                 }.execute();
             }
+            if( rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.BATTERY_EVENT ){
+                final Events.BatteryData batteryData = rfidStatusEvents.StatusEventData.BatteryData;
+                Log.d("BatteryData",String.valueOf(batteryData.getCause()));
+                Log.d("BatteryData", String.valueOf(batteryData.getLevel()));
+                Log.d("BatteryData",  String.valueOf(batteryData.getCharging()));
+                List<String> xx = Arrays.asList(
+                        String.valueOf(batteryData.getCause()),
+                        String.valueOf(batteryData.getLevel()),
+                        String.valueOf(batteryData.getCharging())
+                );
+                ArrayList<HashMap<String, Object>> dataArray = new ArrayList<>();
+                HashMap<String, Object> item = new HashMap<>();
+                item.put("data", xx);
+                dataArray.add(item);
+                new AsyncBatterieNotify().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataArray);
+
+                
+            }
+            
             
         }
 
@@ -408,6 +505,15 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             HashMap<String,Object> hashMap=new HashMap<>();
             hashMap.put("datas",params[0]);
             emit(Base.RfidEngineEvents.ReadRfid,hashMap);
+            return null;
+        }
+    }
+    private  class AsyncBatterieNotify extends AsyncTask<ArrayList<HashMap<String, Object>>, Void, Void> {
+        @Override
+        protected Void doInBackground(ArrayList ... params) {
+            HashMap<String,Object> hashMap=new HashMap<>();
+            hashMap.put("datas",params[0]);
+            emit(Base.RfidEngineEvents.batterieData,hashMap);
             return null;
         }
     }

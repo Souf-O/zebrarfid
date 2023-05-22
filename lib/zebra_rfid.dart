@@ -24,6 +24,10 @@ class ZebraRfid {
     return _channel.invokeMethod('startRead');
   }
 
+  static Future<dynamic> getReadersList() async {
+    return _channel.invokeMethod('getReadersList');
+  }
+
   ///写
   static Future<String?> write() async {
     return _channel.invokeMethod('write');
@@ -59,6 +63,25 @@ class ZebraRfid {
     }
   }
 
+  static Future<dynamic> getbatterie() async {
+    return _channel.invokeMethod('getbatterie');
+  }
+
+  static Future<int> setBeeperVolume(int volume) async {
+    final x = _channel.invokeMethod('setBeeperVolume', {"volume": volume});
+    return await x;
+  }
+
+  static Future<String> getBeeperVolume() async {
+    final x = _channel.invokeMethod('getBeeperVolume');
+    return await x;
+  }
+
+  static Future<int> enableLED(int i) async {
+    final y = _channel.invokeMethod('enableLED', {"enable": i});
+    return await y;
+  }
+
   ///Disconnect the device
   static Future<String?> disconnect() async {
     return _channel.invokeMethod('disconnect');
@@ -79,6 +102,8 @@ class ZebraRfid {
       _sink = _eventChannel.receiveBroadcastStream().listen((event) {
         final eventMap = Map<String, dynamic>.from(event);
         final eventName = eventMap['eventName'] as String?;
+        print(eventName);
+        print("-----------------------------------------");
         // final data = List<dynamic>.from(eventMap['data']);
         _handler?.process(eventName, eventMap);
       });

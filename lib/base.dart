@@ -39,7 +39,12 @@ class ZebraEngineEventHandler {
         break;
       case 'batterieData':
         List<dynamic> batData = map["datas"];
+        print(map);
+
         List<String> results = batData[0] ?? [];
+
+        print(results);
+        readBatterieCallback?.call(results);
 
         print(map);
         readBatterieCallback?.call(results);

@@ -41,7 +41,7 @@ class ZebraEngineEventHandler {
         List<dynamic> batData = map["datas"];
         print(map);
 
-        List<String> results = batData[0] ?? [];
+        List<String> results = batData[0]["data"] ?? [];
 
         print(results);
         readBatterieCallback?.call(results);

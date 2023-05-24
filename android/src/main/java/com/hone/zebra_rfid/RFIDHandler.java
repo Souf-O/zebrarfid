@@ -241,19 +241,30 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         }
     }
 
-
-
-    public void setMaxPower(int newMaxPower){
+    public void setMaxPower(int newMaxPower) {
         maxPower = newMaxPower;
         try {
-            Antennas.AntennaRfConfig config = reader.Config.Antennas.getAntennaRfConfig(1);
-            config.setTransmitPowerIndex(maxPower);
-            reader.Config.Antennas.setAntennaRfConfig(1, config);
-        }catch (InvalidUsageException | OperationFailureException e){
+            if (reader != null && reader.Config != null && reader.Config.Antennas != null) {
+                Antennas.AntennaRfConfig config = reader.Config.Antennas.getAntennaRfConfig(1);
+                if (config != null) {
+                    config.setTransmitPowerIndex(maxPower);
+                    reader.Config.Antennas.setAntennaRfConfig(1, config);
+                } else {
+                    // Handle case when AntennaRfConfig is null
+                    // Log an error or throw an exception as needed
+                }
+            } else {
+                // Handle case when reader or its properties are null
+                // Log an error or throw an exception as needed
+            }
+        } catch (InvalidUsageException | OperationFailureException e) {
             e.printStackTrace();
+            // Handle exception as needed
         }
-
     }
+    
+
+   
     public  int getMaxPower(){
         return maxPower;
     }

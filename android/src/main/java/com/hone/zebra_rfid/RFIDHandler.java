@@ -130,7 +130,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
 
 
     @SuppressLint("StaticFieldLeak")
-    public voidAutoConnectDevice(final Result result) {
+    public void AutoConnectDevice(final Result result) {
         AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {

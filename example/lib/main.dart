@@ -117,7 +117,7 @@ class _MyAppState extends State<MyApp> {
               ),
               MaterialButton(
                 onPressed: () async {
-                  yy = await ZebraRfid.enableLED(1);
+                  yy = await ZebraRfid.setBeeperVolume(3);
                   setState(() {
                     rfidDatas = {};
                   });

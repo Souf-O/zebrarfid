@@ -198,7 +198,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     }
 
     private synchronized void ConfigureReader() {
-        if (reader.isConnected()) {
+        if (reader != null && reader.isConnected()) {
             TriggerInfo triggerInfo = new TriggerInfo();
             triggerInfo.StartTrigger.setTriggerType(START_TRIGGER_TYPE.START_TRIGGER_TYPE_IMMEDIATE);
             triggerInfo.StopTrigger.setTriggerType(STOP_TRIGGER_TYPE.STOP_TRIGGER_TYPE_IMMEDIATE);

@@ -134,37 +134,35 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
-                        Log.d(TAG, "CreateInstanceTask");
-                        try {
-
-                            if (readerDevice == null) {
-                                ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
-                                if (readersListArray.size() > 0) {
-                                    readerDevice = readersListArray.get(0);
-                                    reader = readerDevice.getRFIDReader();
-                                } else {
-                                    return "No connectable device detected";
-                                }
-                            }
+                Log.d(TAG, "CreateInstanceTask");
+                try {
+                    if (readerDevice == null) {
+                        ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
+                        if (readersListArray.size() > 0) {
+                            readerDevice = readersListArray.get(0);
+                            reader = readerDevice.getRFIDReader();
+                        } else {
+                            return "No connectable device detected";
+                        }
+                    }
 
                     if (reader != null && !reader.isConnected() && !this.isCancelled()) {
                         reader.connect();
                         ConfigureReader();
                     }
-
                 } catch (InvalidUsageException ex) {
                     Log.d(TAG, "InvalidUsageException");
+                    ex.printStackTrace();
                     return ex.getMessage();
-
-//                    exceptionIN = ex;
                 } catch (OperationFailureException e) {
                     String details = e.getStatusDescription();
-                            String a= e.getVendorMessage();
+                    String a = e.getVendorMessage();
+                    e.printStackTrace();
                     return details;
-//                    exception = e;
                 }
                 return null;
             }
+
 
             @Override
             protected void onPostExecute(String error) {

@@ -130,7 +130,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
 
 
     @SuppressLint("StaticFieldLeak")
-    public void AutoConnectDevice(final Result result) {
+    public voidAutoConnectDevice(final Result result) {
         AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
@@ -198,7 +198,6 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     }
 
     private synchronized void ConfigureReader() {
-        Log.d(TAG, "ConfigureReader " + reader.getHostName());
         if (reader.isConnected()) {
             TriggerInfo triggerInfo = new TriggerInfo();
             triggerInfo.StartTrigger.setTriggerType(START_TRIGGER_TYPE.START_TRIGGER_TYPE_IMMEDIATE);

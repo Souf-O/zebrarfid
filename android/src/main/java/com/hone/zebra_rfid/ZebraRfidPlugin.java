@@ -93,6 +93,32 @@ public class ZebraRfidPlugin implements FlutterPlugin, MethodCallHandler, Stream
                 int j =rfidHandler.setBeeperVolume(i);
                 result.success(j);
                 break;
+            case "getRFModeTableInfo" : 
+                String _results = rfidHandler.getLinkedProfiles();
+                result.success(_results);
+                break;
+            case "getLinkedProfile":
+                int res = rfidHandler.getLinkedProfile();
+                result.success(res);   
+                break; 
+                
+            case "setSControl":
+                int sIndex = call.argument("SIndex");
+
+                int _Sres = rfidHandler.setSControl(sIndex);
+                result.success(_Sres);   
+                break;    
+            case "setDPower":
+                int dpo = call.argument("DPower");
+                int dpores = rfidHandler.setDPower(dpo);
+                result.success(dpores);   
+                break;          
+            case "setLinkedProfile":
+                int profileIndex = call.argument("profileIndex");
+
+                int _res = rfidHandler.setLinkedProfile(profileIndex);
+                result.success(_res);   
+                break; 
             // case "getBeeperVolume":
             //     String z = rfidHandler.getBeeperVolume();
             //     result.success(z);

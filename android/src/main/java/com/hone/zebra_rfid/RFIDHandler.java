@@ -30,6 +30,11 @@ import com.zebra.rfid.api3.TagData;
 import com.zebra.rfid.api3.TriggerInfo;
 import com.zebra.rfid.api3.Events;
 import com.zebra.rfid.api3.BEEPER_VOLUME;
+import com.zebra.rfid.api3.ReaderCapabilities;
+import com.zebra.rfid.api3.RFModeTable;
+import com.zebra.rfid.api3.RFModeTableEntry;
+import com.zebra.rfid.api3.DYNAMIC_POWER_OPTIMIZATION;
+
 
 
 import java.lang.reflect.Field;
@@ -277,6 +282,123 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         return isReaderConnected();
     }
 
+    public int getLinkedProfile() {
+        try {
+            Antennas.AntennaRfConfig antennaRfConfig = reader.Config.Antennas.getAntennaRfConfig(1);
+            Long x = antennaRfConfig.getrfModeTableIndex();
+            if (x != null) {
+                return x.intValue();
+            } else {
+                // Handle the case when x is null
+                return -1; // or any other appropriate default value
+            }
+        } catch (InvalidUsageException | OperationFailureException e) {
+            e.printStackTrace();
+            // Handle the exception
+        }
+        return -1; // or any other appropriate default value
+    }
+    
+    public int setLinkedProfile(int i) {
+        try {
+            Antennas.AntennaRfConfig config = reader.Config.Antennas.getAntennaRfConfig(1);
+            if (config.getrfModeTableIndex() != i ) {
+                config.setTari(0);
+                config.setrfModeTableIndex(i);
+            }
+            reader.Config.Antennas.setAntennaRfConfig(1, config);
+            Log.d("setLinkedProfile: success = " ,String.valueOf(i));          
+            return (int)  config.getrfModeTableIndex();
+        } catch (InvalidUsageException e) {
+            Log.d("InvalidUsageException , Error message: " , e.getMessage());
+            e.printStackTrace();
+            return 0;
+        } catch (OperationFailureException e) {
+            Log.d("Status description: OperationFailureException details:   " , e.getStatusDescription());
+            Log.d("Status code: " ,  e.	getVendorMessage() );
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    
+
+    public int setSControl(int s){
+        try {
+            Antennas.SingulationControl singulationControl;
+            singulationControl = reader.Config.Antennas.getSingulationControl(1);
+            singulationControl.setSession(SESSION.GetSession(s));
+            // if (item.id.equals("0"))
+            //     singulationControl.Action.setInventoryState(INVENTORY_STATE.INVENTORY_STATE_AB_FLIP);
+            // else if (!item.id.equals("5"))
+            //     singulationControl.Action.setInventoryState(INVENTORY_STATE.INVENTORY_STATE_A);
+
+            reader.Config.Antennas.setSingulationControl(1, singulationControl);
+            Log.d("setLinkedProfile: success = " ,String.valueOf(s));          
+            return   singulationControl.getSession().getValue();
+        } catch (InvalidUsageException e) {
+            Log.d("InvalidUsageException , Error message: " , e.getMessage());
+            e.printStackTrace();
+            return 0;
+        } catch (OperationFailureException e) {
+            Log.d("Status description: OperationFailureException details:   " , e.getStatusDescription());
+            Log.d("Status code: " ,  e.	getVendorMessage() );
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    public int setDPower(int s){
+        try {
+            if (s == 1)
+                        reader.Config.setDPOState(DYNAMIC_POWER_OPTIMIZATION.ENABLE);
+            else
+                reader.Config.setDPOState(DYNAMIC_POWER_OPTIMIZATION.DISABLE);
+             
+            return  reader.Config.getDPOState().getValue();
+        } catch (InvalidUsageException e) {
+            Log.d("InvalidUsageException , Error message: " , e.getMessage());
+            e.printStackTrace();
+            return 0;
+        } catch (OperationFailureException e) {
+            Log.d("Status description: OperationFailureException details:   " , e.getStatusDescription());
+            Log.d("Status code: " ,  e.	getVendorMessage() );
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    
+    
+
+    public String  getLinkedProfiles() {
+        RFModeTable rfModeTable = reader.ReaderCapabilities.RFModes.getRFModeTableInfo(0);
+        RFModeTableEntry rfModeTableEntry = null;
+        List<String> linkedProfiles = new ArrayList<>(); 
+        for (int i = 0; i < rfModeTable.length(); i++) {
+            rfModeTableEntry = rfModeTable.getRFModeTableEntryInfo(i);
+            linkedProfiles.add(
+                rfModeTableEntry.getBdrValue() + " " +
+                rfModeTableEntry.getModulation().getValue()  + " " +
+                rfModeTableEntry.getPieValue() + " " +
+                rfModeTableEntry.getMaxTariValue() + " " +
+                rfModeTableEntry.getStepTariValue()
+            );
+        }
+        Log.d("getLinkedProfiles", String.valueOf(linkedProfiles));
+        return String.valueOf(linkedProfiles);
+    }
+    
+
+    // public void getRFModeTableInfo(){
+    //     try{ 
+
+    //         reader.ReaderCapabilities.RFModes.getRFModeTableInfo(0)
+    //     } catch (InvalidUsageException | OperationFailureException e) {
+    //         e.printStackTrace();
+    //     }
+
+    // }
 
     public int getBatteryLevel() {
         if (isReaderConnected()) {

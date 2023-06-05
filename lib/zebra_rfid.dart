@@ -33,6 +33,26 @@ class ZebraRfid {
     return _channel.invokeMethod('write');
   }
 
+  static Future<String?> linkProfiles() {
+    return _channel.invokeMethod('getRFModeTableInfo');
+  }
+
+  static Future<int?> getlinkProfile() {
+    return _channel.invokeMethod('getLinkedProfile');
+  }
+
+  static Future<int?> setlinkProfile(int i) {
+    return _channel.invokeMethod('setLinkedProfile', {"profileIndex": i});
+  }
+
+  static Future<int?> setDPO(int i) {
+    return _channel.invokeMethod('setDPower', {"DPower": i});
+  }
+
+  static Future<int?> setSControl(int i) {
+    return _channel.invokeMethod('setSControl', {"SIndex": i});
+  }
+
   ///连接设备
   static Future<dynamic> connect() async {
     try {

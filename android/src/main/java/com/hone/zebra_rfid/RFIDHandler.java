@@ -101,127 +101,68 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         AutoConnectDevice(result);
     }
 
-    // @SuppressLint("StaticFieldLeak")
-    // public void AutoConnectDevice(final Result result) {
-    //     AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
-    //         @Override
-    //         protected String doInBackground(Void... voids) {
-    //             Log.d(TAG, "CreateInstanceTask");
-    //             try {
-    //                 if (readerDevice == null) {
-    //                     ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
-    //                     if (readersListArray.size() > 0) {
-    //                         readerDevice = readersListArray.get(0);
-    //                         reader = readerDevice.getRFIDReader();
-    //                     } else {
-    //                         return "No connectable device detected";
-    //                     }
-    //                 }
-
-    //                 if (reader != null && !reader.isConnected() && !this.isCancelled()) {
-    //                     reader.connect();
-    //                     ConfigureReader();
-    //                 }
-    //             } catch (InvalidUsageException ex) {
-    //                 Log.d(TAG, "InvalidUsageException");
-    //                 ex.printStackTrace();
-    //                 return ex.getMessage();
-    //             } catch (OperationFailureException e) {
-    //                 String details = e.getStatusDescription();
-    //                 String a = e.getVendorMessage();
-    //                 e.printStackTrace();
-    //                 return details;
-    //             }
-    //             return null;
-    //         }
-
-
-    //         @Override
-    //         protected void onPostExecute(String error) {
-    //               Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionRealy;
-    //             super.onPostExecute(error);
-    //             if (error != null) {
-    //                 emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
-    //                 status=Base.ConnectionStatus.ConnectionError;
-    //             }
-    //             HashMap<String, Object> map =new HashMap<>();
-    //             map.put("status",status.ordinal());
-    //             emit(Base.RfidEngineEvents.ConnectionStatus,map);
-    //         }
-
-    //         @Override
-    //         protected void onCancelled() {
-    //             super.onCancelled();
-    //             AutoConnectDeviceTask = null;
-    //         }
-
-    //     }.execute();
-
-
-    // }
-
 
     @SuppressLint("StaticFieldLeak")
-public void AutoConnectDevice(final Result result) {
-    AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
-        @Override
-        protected String doInBackground(Void... voids) {
-            Log.d(TAG, "CreateInstanceTask");
-            try {
-                if (isCancelled()) {
-                    isConnecting = false; 
-                    Log.d("is connecting :" , String.valueOf(isConnecting) );
-                    return "Task cancelled";
-                }
-                if (readers != null) {
-                    if (readers.GetAvailableRFIDReaderList() != null) {
-                    ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
-                    if (readersListArray.size() != 0) {
-                        readerDevice = readersListArray.get(0);
-                        reader = readerDevice.getRFIDReader();
-                        if (!reader.isConnected()) {
-                            // Establish connection to the RFID Reader
-                            reader.connect();
-                            ConfigureReader();
-                            return "true";
+    public void AutoConnectDevice(final Result result) {
+        AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                Log.d(TAG, "CreateInstanceTask");
+                try {
+                    if (isCancelled()) {
+                        isConnecting = false; 
+                        Log.d("is connecting :" , String.valueOf(isConnecting) );
+                        return "Task cancelled";
+                    }
+                    if (readers != null) {
+                        if (readers.GetAvailableRFIDReaderList() != null) {
+                        ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
+                        if (readersListArray.size() != 0) {
+                            readerDevice = readersListArray.get(0);
+                            reader = readerDevice.getRFIDReader();
+                            if (!reader.isConnected()) {
+                                // Establish connection to the RFID Reader
+                                reader.connect();
+                                ConfigureReader();
+                                return "true";
+                            }
+                        } else {
+                            return "No connectable device detected";
                         }
-                    } else {
-                        return "No connectable device detected";
                     }
                 }
+
+                
+                } catch (OperationFailureException e) {
+                    String details = e.getStatusDescription();
+                    String a = e.getVendorMessage();
+                    e.printStackTrace();
+                    return details;
+                } catch (InvalidUsageException er){
+                    er.printStackTrace();
+                }
+                return null;
             }
 
-               
-            } catch (OperationFailureException e) {
-                String details = e.getStatusDescription();
-                String a = e.getVendorMessage();
-                e.printStackTrace();
-                return details;
-            } catch (InvalidUsageException er){
-                er.printStackTrace();
+
+            @Override
+            protected void onPostExecute(String error) {
+                Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionError;
+                super.onPostExecute(error);
+                if (error != null) {
+                    emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
+                    status=Base.ConnectionStatus.ConnectionRealy;
+                }
+                HashMap<String, Object> map =new HashMap<>();
+                map.put("status",status.ordinal());
+                emit(Base.RfidEngineEvents.ConnectionStatus,map);
             }
-            return null;
-        }
 
-
-        @Override
-        protected void onPostExecute(String error) {
-            Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionError;
-            super.onPostExecute(error);
-            if (error != null) {
-                emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
-                status=Base.ConnectionStatus.ConnectionRealy;
+            @Override
+            protected void onCancelled() {
+                super.onCancelled();
+                AutoConnectDeviceTask = null;
             }
-            HashMap<String, Object> map =new HashMap<>();
-            map.put("status",status.ordinal());
-            emit(Base.RfidEngineEvents.ConnectionStatus,map);
-        }
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            AutoConnectDeviceTask = null;
-        }
 
     }.execute();
 

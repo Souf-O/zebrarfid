@@ -600,7 +600,8 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         public void eventStatusNotify(RfidStatusEvents rfidStatusEvents) {
             Log.d(TAG, "Status Notification: " + rfidStatusEvents.StatusEventData.getStatusEventType());
             if (rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.HANDHELD_TRIGGER_EVENT) {
-                if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.getHandheldEvent() == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_PRESSED)
+                HANDHELD_TRIGGER_EVENT_TYPE handheldEvent = rfidStatusEvents.StatusEventData.HandheldTriggerEventData.getHandheldEvent();
+                if (handheldEvent == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_PRESSED) {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
@@ -608,21 +609,22 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                             return null;
                         }
                     }.execute();
+                } else if (handheldEvent == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_RELEASED) {
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void... voids) {
+                            handleTriggerPress(false);
+                            return null;
+                        }
+                    }.execute();
+                }
             }
-            if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.getHandheldEvent() == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_RELEASED) {
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        handleTriggerPress(false);
-                        return null;
-                    }
-                }.execute();
-            }
-            if( rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.BATTERY_EVENT ){
+        
+            if (rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.BATTERY_EVENT) {
                 final Events.BatteryData batteryData = rfidStatusEvents.StatusEventData.BatteryData;
-                Log.d("BatteryData",String.valueOf(batteryData.getCause()));
+                Log.d("BatteryData", String.valueOf(batteryData.getCause()));
                 Log.d("BatteryData", String.valueOf(batteryData.getLevel()));
-                Log.d("BatteryData",  String.valueOf(batteryData.getCharging()));
+                Log.d("BatteryData", String.valueOf(batteryData.getCharging()));
                 List<String> xx = Arrays.asList(
                         String.valueOf(batteryData.getCause()),
                         String.valueOf(batteryData.getLevel()),
@@ -633,14 +635,9 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                 item.put("data", xx);
                 dataArray.add(item);
                 new AsyncBatterieNotify().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataArray);
-
-                
             }
-            
-            
         }
-
-     
+        
 
 
     }

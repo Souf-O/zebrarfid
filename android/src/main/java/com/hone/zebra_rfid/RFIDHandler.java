@@ -661,8 +661,13 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         if (!isReaderConnected())
             return;
         try {
-            if(isLocating){
-                reader.Actions.TagLocationing.Perform(tagLocationId, null, null);
+            if(isLocating ){
+                if( tagLocationId !="" && tagLocationId != null){
+
+                }else {
+                    reader.Actions.TagLocationing.Perform(tagLocationId, null, null);
+
+                }
             }else {
                 reader.Actions.Inventory.perform();
             }

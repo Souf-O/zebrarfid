@@ -663,9 +663,13 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         try {
             if(isLocating ){
                 if( tagLocationId !="" && tagLocationId != null){
+                    reader.Actions.TagLocationing.Perform(tagLocationId, null, null);
+
+                    Log.d("here is the error", tagLocationId);
 
                 }else {
-                    reader.Actions.TagLocationing.Perform(tagLocationId, null, null);
+                    Log.d("here is the error", tagLocationId);
+
 
                 }
             }else {
@@ -673,8 +677,11 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             }
             
         } catch (InvalidUsageException e) {
+            Log.d("here is the error", "lets fix it ");
             e.printStackTrace();
         } catch (OperationFailureException e) {
+            Log.d("here is the error 2 ", "lets fix it1  ");
+
             e.printStackTrace();
         }
     }

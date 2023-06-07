@@ -105,13 +105,18 @@ class _MyAppState extends State<MyApp> {
                       });
                     },
                   ));
-                  ZebraRfid.connect().then((value) {
-                    print("--------------------value---${value}------------");
+                  bool x = false;
+                  x = await ZebraRfid.isConnected;
+                  !x
+                      ? ZebraRfid.connect().then((value) {
+                          print(
+                              "--------------------value---${value}------------");
 
-                    setState(() {
-                      isZebraConnected = true;
-                    });
-                  });
+                          setState(() {
+                            isZebraConnected = true;
+                          });
+                        })
+                      : ZebraRfid.disconnect();
                 },
                 child: Text("read"),
               ),
@@ -128,12 +133,19 @@ class _MyAppState extends State<MyApp> {
               ),
               MaterialButton(
                 onPressed: () async {
-                  try {
-                    ZebraRfid.disconnect();
-                  } catch (e) {
-                    print(e);
-                  }
-                  isZebraConnected
+                  // try {
+                  //   ZebraRfid.disconnect();
+                  // } catch (e) {
+                  //   print(e);
+                  // }
+                  bool x = false;
+                  x = await ZebraRfid.isConnected;
+                  print(
+                      "##########################################################");
+                  print(x);
+                  print(
+                      "##########################################################");
+                  x
                       ? ZebraRfid.disconnect()
                       : print(
                           "--------------------------working-----------------------");

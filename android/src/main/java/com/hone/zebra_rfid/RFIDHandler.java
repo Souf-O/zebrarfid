@@ -59,6 +59,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     //    private static ArrayList<ReaderDevice> availableRFIDReaderList;
     private static ReaderDevice readerDevice;
     private static RFIDReader reader;
+    private boolean isConnecting = false ;
     private int maxPower = 270;
     private boolean isLocating = false ;
     private String tagLocationId ;
@@ -92,117 +93,151 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     @SuppressLint("StaticFieldLeak")
     public void connect(final Result result) {
         Readers.attach(this);
+        isConnecting = true ;
         if (readers == null) {
                 readers = new Readers(context,ENUM_TRANSPORT.ALL);
             //readers = new Readers(context, ENUM_TRANSPORT.SERVICE_SERIAL);
         }
         AutoConnectDevice(result);
     }
-    
-    public void startLocate(final String tagID, final Result result) {
-        isLocating = true ;
-        tagLocationId = tagID ;
-        Log.d("locating: " , tagID);
-        Log.d("isLocating: ", String.valueOf(isLocating));
-    }
+
+    // @SuppressLint("StaticFieldLeak")
+    // public void AutoConnectDevice(final Result result) {
+    //     AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
+    //         @Override
+    //         protected String doInBackground(Void... voids) {
+    //             Log.d(TAG, "CreateInstanceTask");
+    //             try {
+    //                 if (readerDevice == null) {
+    //                     ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
+    //                     if (readersListArray.size() > 0) {
+    //                         readerDevice = readersListArray.get(0);
+    //                         reader = readerDevice.getRFIDReader();
+    //                     } else {
+    //                         return "No connectable device detected";
+    //                     }
+    //                 }
+
+    //                 if (reader != null && !reader.isConnected() && !this.isCancelled()) {
+    //                     reader.connect();
+    //                     ConfigureReader();
+    //                 }
+    //             } catch (InvalidUsageException ex) {
+    //                 Log.d(TAG, "InvalidUsageException");
+    //                 ex.printStackTrace();
+    //                 return ex.getMessage();
+    //             } catch (OperationFailureException e) {
+    //                 String details = e.getStatusDescription();
+    //                 String a = e.getVendorMessage();
+    //                 e.printStackTrace();
+    //                 return details;
+    //             }
+    //             return null;
+    //         }
 
 
-    public void stopLocate() {
-        isLocating = false ;
-        tagLocationId = "" ;
-        Log.d("locating: ",  String.valueOf(isLocating) );
-        Log.d("isLocating: ", String.valueOf(isLocating));
-    }
+    //         @Override
+    //         protected void onPostExecute(String error) {
+    //               Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionRealy;
+    //             super.onPostExecute(error);
+    //             if (error != null) {
+    //                 emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
+    //                 status=Base.ConnectionStatus.ConnectionError;
+    //             }
+    //             HashMap<String, Object> map =new HashMap<>();
+    //             map.put("status",status.ordinal());
+    //             emit(Base.RfidEngineEvents.ConnectionStatus,map);
+    //         }
+
+    //         @Override
+    //         protected void onCancelled() {
+    //             super.onCancelled();
+    //             AutoConnectDeviceTask = null;
+    //         }
+
+    //     }.execute();
 
 
-    public void dispose() {
-        try {
-            if (readers != null) {
-                readerDevice=null;
-                reader = null;
-                readers.Dispose();
-                readers = null;
-                HashMap<String, Object> map =new HashMap<>();
-                map.put("status", Base.ConnectionStatus.UnConnection.ordinal());
-                emit(Base.RfidEngineEvents.ConnectionStatus,map);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
+    // }
 
 
     @SuppressLint("StaticFieldLeak")
-    public void AutoConnectDevice(final Result result) {
-        AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... voids) {
-                Log.d(TAG, "CreateInstanceTask");
-                try {
-                    if (readerDevice == null) {
-                        ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
-                        if (readersListArray.size() > 0) {
-                            readerDevice = readersListArray.get(0);
-                            reader = readerDevice.getRFIDReader();
-                        } else {
-                            return "No connectable device detected";
+public void AutoConnectDevice(final Result result) {
+    AutoConnectDeviceTask = new AsyncTask<Void, Void, String>() {
+        @Override
+        protected String doInBackground(Void... voids) {
+            Log.d(TAG, "CreateInstanceTask");
+            try {
+                if (isCancelled()) {
+                    isConnecting = false; 
+                    Log.d("is connecting :" , String.valueOf(isConnecting) );
+                    return "Task cancelled";
+                }
+                if (readers != null) {
+                    if (readers.GetAvailableRFIDReaderList() != null) {
+                    ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
+                    if (readersListArray.size() != 0) {
+                        readerDevice = readersListArray.get(0);
+                        reader = readerDevice.getRFIDReader();
+                        if (!reader.isConnected()) {
+                            // Establish connection to the RFID Reader
+                            reader.connect();
+                            ConfigureReader();
+                            return "true";
                         }
+                    } else {
+                        return "No connectable device detected";
                     }
-
-                    if (reader != null && !reader.isConnected() && !this.isCancelled()) {
-                        reader.connect();
-                        ConfigureReader();
-                    }
-                } catch (InvalidUsageException ex) {
-                    Log.d(TAG, "InvalidUsageException");
-                    ex.printStackTrace();
-                    return ex.getMessage();
-                } catch (OperationFailureException e) {
-                    String details = e.getStatusDescription();
-                    String a = e.getVendorMessage();
-                    e.printStackTrace();
-                    return details;
                 }
-                return null;
             }
 
-
-            @Override
-            protected void onPostExecute(String error) {
-                  Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionRealy;
-                super.onPostExecute(error);
-                if (error != null) {
-                    emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
-                    status=Base.ConnectionStatus.ConnectionError;
-                }
-                HashMap<String, Object> map =new HashMap<>();
-                map.put("status",status.ordinal());
-                emit(Base.RfidEngineEvents.ConnectionStatus,map);
+               
+            } catch (OperationFailureException e) {
+                String details = e.getStatusDescription();
+                String a = e.getVendorMessage();
+                e.printStackTrace();
+                return details;
+            } catch (InvalidUsageException er){
+                er.printStackTrace();
             }
-
-            @Override
-            protected void onCancelled() {
-                super.onCancelled();
-                AutoConnectDeviceTask = null;
-            }
-
-        }.execute();
-
-
-    }
-
-    private boolean isReaderConnected() {
-        if (reader != null && reader.isConnected())
-            return true;
-        else {
-            Log.d(TAG, "reader is not connected");
-            return false;
+            return null;
         }
-    }
+
+
+        @Override
+        protected void onPostExecute(String error) {
+            Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionError;
+            super.onPostExecute(error);
+            if (error != null) {
+                emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
+                status=Base.ConnectionStatus.ConnectionRealy;
+            }
+            HashMap<String, Object> map =new HashMap<>();
+            map.put("status",status.ordinal());
+            emit(Base.RfidEngineEvents.ConnectionStatus,map);
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            AutoConnectDeviceTask = null;
+        }
+
+    }.execute();
+
+
+}
+
 
     private synchronized void ConfigureReader() {
+       
+            if (reader == null) {
+                throw new NullPointerException("Reader is not connected");
+            }
+        
+            // Configure the reader here
+        
+        
         if (reader != null && reader.isConnected()) {
             TriggerInfo triggerInfo = new TriggerInfo();
             triggerInfo.StartTrigger.setTriggerType(START_TRIGGER_TYPE.START_TRIGGER_TYPE_IMMEDIATE);
@@ -240,6 +275,61 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             } catch (InvalidUsageException | OperationFailureException e) {
                 e.printStackTrace();
             }
+            isConnecting = false;
+
+        }
+    }
+
+
+
+    
+    public void startLocate(final String tagID, final Result result) {
+        isLocating = true ;
+        tagLocationId = tagID ;
+        Log.d("locating: " , tagID);
+        Log.d("isLocating: ", String.valueOf(isLocating));
+    }
+
+
+    public void stopLocate() {
+        isLocating = false ;
+        tagLocationId = "" ;
+        Log.d("locating: ",  String.valueOf(isLocating) );
+        Log.d("isLocating: ", String.valueOf(isLocating));
+    }
+
+
+    public void dispose() {
+        try {
+            if (readers != null) {
+                if (AutoConnectDeviceTask != null) {
+                    AutoConnectDeviceTask.cancel(true);
+                }
+                readerDevice=null;
+                reader = null;
+                readers.Dispose();
+                readers = null;
+                HashMap<String, Object> map =new HashMap<>();
+                map.put("status", Base.ConnectionStatus.UnConnection.ordinal());
+                emit(Base.RfidEngineEvents.ConnectionStatus,map);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    private boolean isReaderConnected() {
+        if (reader != null && reader.isConnected())
+            return true;
+        else if( isConnecting ){
+            return false ;
+        }
+            else {
+            Log.d(TAG, "reader is not connected");
+            return false;
         }
     }
 

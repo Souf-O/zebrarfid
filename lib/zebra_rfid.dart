@@ -49,8 +49,16 @@ class ZebraRfid {
     return _channel.invokeMethod('setDPower', {"DPower": i});
   }
 
+  static Future<int?> getDPO() {
+    return _channel.invokeMethod('getDPower');
+  }
+
   static Future<int?> setSControl(int i) {
     return _channel.invokeMethod('setSControl', {"SIndex": i});
+  }
+
+  static Future<int?> getSControl() {
+    return _channel.invokeMethod('getSControl');
   }
 
   ///连接设备

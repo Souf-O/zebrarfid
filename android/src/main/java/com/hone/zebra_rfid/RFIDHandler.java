@@ -321,6 +321,27 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
         }
     }
 
+    public int getSControl(){
+        try {
+            Antennas.SingulationControl singulationControl;
+            Log.d("Get Singulation Control:  " ,"----------------");   
+
+            singulationControl = reader.Config.Antennas.getSingulationControl(1);
+            singulationControl.getSession().getValue();
+            Log.d("Get Singulation Control:  success = " ,String.valueOf(singulationControl.getSession().getValue()));          
+            return   singulationControl.getSession().getValue();
+        } catch (InvalidUsageException e) {
+            Log.d("InvalidUsageException , Error message: " , e.getMessage());
+            e.printStackTrace();
+            return 0;
+        } catch (OperationFailureException e) {
+            Log.d("Status description: OperationFailureException details:   " , e.getStatusDescription());
+            Log.d("Status code: " ,  e.	getVendorMessage() );
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
     
 
     public int setSControl(int s){
@@ -328,14 +349,31 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             Antennas.SingulationControl singulationControl;
             singulationControl = reader.Config.Antennas.getSingulationControl(1);
             singulationControl.setSession(SESSION.GetSession(s));
-            // if (item.id.equals("0"))
-            //     singulationControl.Action.setInventoryState(INVENTORY_STATE.INVENTORY_STATE_AB_FLIP);
-            // else if (!item.id.equals("5"))
-            //     singulationControl.Action.setInventoryState(INVENTORY_STATE.INVENTORY_STATE_A);
+            if (s == 0 )
+                singulationControl.Action.setInventoryState(INVENTORY_STATE.INVENTORY_STATE_AB_FLIP);
+            else if (s == 5 )
+                singulationControl.Action.setInventoryState(INVENTORY_STATE.INVENTORY_STATE_A);
 
             reader.Config.Antennas.setSingulationControl(1, singulationControl);
             Log.d("setLinkedProfile: success = " ,String.valueOf(s));          
             return   singulationControl.getSession().getValue();
+        } catch (InvalidUsageException e) {
+            Log.d("InvalidUsageException , Error message: " , e.getMessage());
+            e.printStackTrace();
+            return 0;
+        } catch (OperationFailureException e) {
+            Log.d("Status description: OperationFailureException details:   " , e.getStatusDescription());
+            Log.d("Status code: " ,  e.	getVendorMessage() );
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    public int getDPower(){
+        try {
+            
+             
+            return  reader.Config.getDPOState().getValue();
         } catch (InvalidUsageException e) {
             Log.d("InvalidUsageException , Error message: " , e.getMessage());
             e.printStackTrace();
@@ -379,10 +417,11 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             rfModeTableEntry = rfModeTable.getRFModeTableEntryInfo(i);
             linkedProfiles.add(
                 rfModeTableEntry.getBdrValue() + " " +
-                rfModeTableEntry.getModulation().getValue()  + " " +
-                rfModeTableEntry.getPieValue() + " " +
+                rfModeTableEntry.getModulation().getValue()  + " " + 
                 rfModeTableEntry.getMaxTariValue() + " " +
-                rfModeTableEntry.getStepTariValue()
+                rfModeTableEntry.getMinTariValue()  + " " + 
+                rfModeTableEntry.getStepTariValue() + " " + 
+                rfModeTableEntry.getPieValue()
             );
         }
         Log.d("getLinkedProfiles", String.valueOf(linkedProfiles));

@@ -108,6 +108,16 @@ public class ZebraRfidPlugin implements FlutterPlugin, MethodCallHandler, Stream
                 int _Sres = rfidHandler.setSControl(sIndex);
                 result.success(_Sres);   
                 break;    
+            case "getSControl":
+                //int sIndex = call.argument("SIndex");
+
+                int _SControl = rfidHandler.getSControl();
+                result.success(_SControl);   
+                break;   
+            case "getDPower":
+                int getDPower = rfidHandler.getDPower();
+                result.success(getDPower);   
+                break;              
             case "setDPower":
                 int dpo = call.argument("DPower");
                 int dpores = rfidHandler.setDPower(dpo);

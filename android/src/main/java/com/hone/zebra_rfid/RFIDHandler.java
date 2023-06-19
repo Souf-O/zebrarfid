@@ -45,10 +45,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.LogManager;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
@@ -70,8 +66,6 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     private IEventHandler eventHandler = new IEventHandler();
     private Function<String, Map<String, Object>> _emit;
     private EventChannel.EventSink sink = null;
-    private ExecutorService executor;
-
 
 
 
@@ -104,70 +98,8 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                 readers = new Readers(context,ENUM_TRANSPORT.ALL);
             //readers = new Readers(context, ENUM_TRANSPORT.SERVICE_SERIAL);
         }
-        executor = Executors.newSingleThreadExecutor();
-        executor.submit(new Runnable() {
-        @Override
-        public void run() {
-            try {
-                Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionError;
-                String error = AutoConnectDevice1();
-                if (error == "No connectable device detected") {
-                    emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
-                    status=Base.ConnectionStatus.ConnectionRealy;
-                }
-                HashMap<String, Object> map =new HashMap<>();
-                map.put("status",status.ordinal());
-                emit(Base.RfidEngineEvents.ConnectionStatus,map);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    });
-        //AutoConnectDevice(result);
+        AutoConnectDevice(result);
     }
-
-    @SuppressLint("StaticFieldLeak")
-    public String AutoConnectDevice1() {
-    Log.d(TAG, "CreateInstanceTask");
-                try {
-                    // if (isCancelled()) {
-                    //     isConnecting = false; 
-                    //     Log.d("is connecting :" , String.valueOf(isConnecting) );
-                    //     return "Task cancelled";
-                    // }
-                    if (readers != null) {
-                        if (readers.GetAvailableRFIDReaderList() != null) {
-                        ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
-                        if (readersListArray.size() != 0) {
-                            readerDevice = readersListArray.get(0);
-                            reader = readerDevice.getRFIDReader();
-                            if (!reader.isConnected()) {
-                                // Establish connection to the RFID Reader
-                                reader.connect();
-                                ConfigureReader();
-                                return "true";
-                            }
-                        } else {
-                            return "No connectable device detected";
-                        }
-                    }
-                }
-
-                
-                } catch (OperationFailureException e) {
-                    String details = e.getStatusDescription();
-                    String a = e.getVendorMessage();
-                    e.printStackTrace();
-                    return details;
-                } catch (InvalidUsageException er){
-                    er.printStackTrace();
-                }
-                
-
-    return null;
-}
-
-
 
 
     @SuppressLint("StaticFieldLeak")
@@ -177,6 +109,8 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             protected String doInBackground(Void... voids) {
                 Log.d(TAG, "CreateInstanceTask");
                 try {
+                    isConnecting = true;
+
                     if (isCancelled()) {
                         isConnecting = false; 
                         Log.d("is connecting :" , String.valueOf(isConnecting) );
@@ -192,9 +126,13 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                                 // Establish connection to the RFID Reader
                                 reader.connect();
                                 ConfigureReader();
+                                            isConnecting = false;
+
                                 return "true";
                             }
                         } else {
+                                        isConnecting = false;
+
                             return "No connectable device detected";
                         }
                     }
@@ -217,6 +155,8 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             protected void onPostExecute(String error) {
                 Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionError;
                 super.onPostExecute(error);
+                isConnecting = false;
+
                 if (error != null) {
                     emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
                     status=Base.ConnectionStatus.ConnectionRealy;
@@ -229,6 +169,8 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             @Override
             protected void onCancelled() {
                 super.onCancelled();
+                isConnecting = false;
+
                 AutoConnectDeviceTask = null;
             }
 
@@ -310,37 +252,52 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
 
     public void dispose() {
         try {
-            if (readers != null) {
-                if (AutoConnectDeviceTask != null) {
+            if (reader != null && !isConnecting) {
+                 if (AutoConnectDeviceTask != null) {
                     AutoConnectDeviceTask.cancel(true);
                 }
-                executor.shutdownNow();
-                readerDevice=null;
+                Log.d("status: before : ", String.valueOf(reader.isConnected()));
+                reader.Events.removeEventsListener(eventHandler);
                 reader.disconnect();
-
-                HashMap<String, Object> map =new HashMap<>();
-                map.put("status", Base.ConnectionStatus.UnConnection.ordinal());
-                emit(Base.RfidEngineEvents.ConnectionStatus,map);
+               // reader = null;
+                readers.Dispose();
+                readers = null;
+                Log.d("status: after : ", String.valueOf(reader.isConnected()));
             }
+        } catch (InvalidUsageException e) {
+            e.printStackTrace();
+        } catch (OperationFailureException e) {
+            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // try {
+
+        //     if (readers != null && isConnecting) {
+               
+        //         readerDevice=null;
+        //         reader = null;
+        //         readers.Dispose();
+        //         readers = null;
+        //         HashMap<String, Object> map =new HashMap<>();
+        //         map.put("status", Base.ConnectionStatus.UnConnection.ordinal());
+        //         emit(Base.RfidEngineEvents.ConnectionStatus,map);
+        //     }
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
     }
 
 
 
 
     private boolean isReaderConnected() {
-        if(reader != null){
-            Log.d(TAG, "reader is not null");
-
-            return  reader.isConnected();
-        }
-      
+        if (reader != null && reader.isConnected())
+            return true;
         else if( isConnecting ){
             return false ;
         }
-        else {
+            else {
             Log.d(TAG, "reader is not connected");
             return false;
         }
@@ -632,8 +589,6 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     public class IEventHandler implements RfidEventsListener {
         @Override
         public void eventReadNotify(RfidReadEvents rfidReadEvents) {
-            Log.d(TAG, "Status Notification: " + rfidReadEvents.getReadEventData());
-
             // Recommended to use new method getReadTagsEx for better performance in case of large tag population
             TagData[] myTags = reader.Actions.getReadTags(100);
 

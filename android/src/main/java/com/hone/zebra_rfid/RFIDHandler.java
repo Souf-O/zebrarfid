@@ -45,6 +45,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.LogManager;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+
 
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
@@ -66,6 +70,8 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     private IEventHandler eventHandler = new IEventHandler();
     private Function<String, Map<String, Object>> _emit;
     private EventChannel.EventSink sink = null;
+    private ExecutorService executor;
+
 
 
 
@@ -98,8 +104,70 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                 readers = new Readers(context,ENUM_TRANSPORT.ALL);
             //readers = new Readers(context, ENUM_TRANSPORT.SERVICE_SERIAL);
         }
-        AutoConnectDevice(result);
+        executor = Executors.newSingleThreadExecutor();
+        executor.submit(new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionError;
+                String error = AutoConnectDevice1();
+                if (error == "No connectable device detected") {
+                    emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
+                    status=Base.ConnectionStatus.ConnectionRealy;
+                }
+                HashMap<String, Object> map =new HashMap<>();
+                map.put("status",status.ordinal());
+                emit(Base.RfidEngineEvents.ConnectionStatus,map);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    });
+        //AutoConnectDevice(result);
     }
+
+    @SuppressLint("StaticFieldLeak")
+    public String AutoConnectDevice1() {
+    Log.d(TAG, "CreateInstanceTask");
+                try {
+                    // if (isCancelled()) {
+                    //     isConnecting = false; 
+                    //     Log.d("is connecting :" , String.valueOf(isConnecting) );
+                    //     return "Task cancelled";
+                    // }
+                    if (readers != null) {
+                        if (readers.GetAvailableRFIDReaderList() != null) {
+                        ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
+                        if (readersListArray.size() != 0) {
+                            readerDevice = readersListArray.get(0);
+                            reader = readerDevice.getRFIDReader();
+                            if (!reader.isConnected()) {
+                                // Establish connection to the RFID Reader
+                                reader.connect();
+                                ConfigureReader();
+                                return "true";
+                            }
+                        } else {
+                            return "No connectable device detected";
+                        }
+                    }
+                }
+
+                
+                } catch (OperationFailureException e) {
+                    String details = e.getStatusDescription();
+                    String a = e.getVendorMessage();
+                    e.printStackTrace();
+                    return details;
+                } catch (InvalidUsageException er){
+                    er.printStackTrace();
+                }
+                
+
+    return null;
+}
+
+
 
 
     @SuppressLint("StaticFieldLeak")
@@ -246,10 +314,10 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                 if (AutoConnectDeviceTask != null) {
                     AutoConnectDeviceTask.cancel(true);
                 }
+                executor.shutdownNow();
                 readerDevice=null;
-                reader = null;
-                readers.Dispose();
-                readers = null;
+                reader.disconnect();
+
                 HashMap<String, Object> map =new HashMap<>();
                 map.put("status", Base.ConnectionStatus.UnConnection.ordinal());
                 emit(Base.RfidEngineEvents.ConnectionStatus,map);
@@ -263,12 +331,16 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
 
 
     private boolean isReaderConnected() {
-        if (reader != null && reader.isConnected())
-            return true;
+        if(reader != null){
+            Log.d(TAG, "reader is not null");
+
+            return  reader.isConnected();
+        }
+      
         else if( isConnecting ){
             return false ;
         }
-            else {
+        else {
             Log.d(TAG, "reader is not connected");
             return false;
         }
@@ -560,6 +632,8 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     public class IEventHandler implements RfidEventsListener {
         @Override
         public void eventReadNotify(RfidReadEvents rfidReadEvents) {
+            Log.d(TAG, "Status Notification: " + rfidReadEvents.getReadEventData());
+
             // Recommended to use new method getReadTagsEx for better performance in case of large tag population
             TagData[] myTags = reader.Actions.getReadTags(100);
 

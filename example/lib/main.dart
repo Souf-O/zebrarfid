@@ -138,17 +138,8 @@ class _MyAppState extends State<MyApp> {
                   // } catch (e) {
                   //   print(e);
                   // }
-                  bool x = false;
-                  x = await ZebraRfid.isConnected;
-                  print(
-                      "##########################################################");
-                  print(x);
-                  print(
-                      "##########################################################");
-                  x
-                      ? ZebraRfid.disconnect()
-                      : print(
-                          "--------------------------working-----------------------");
+
+                  ZebraRfid.disconnect();
                 },
                 child: Text("stop"),
               ),

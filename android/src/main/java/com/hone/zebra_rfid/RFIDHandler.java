@@ -128,7 +128,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                                 ConfigureReader();
                                             isConnecting = false;
 
-                                return "true";
+                                
                             }
                         } else {
                                         isConnecting = false;

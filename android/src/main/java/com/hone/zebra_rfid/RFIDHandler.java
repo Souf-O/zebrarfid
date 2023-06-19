@@ -59,6 +59,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     //    private static ArrayList<ReaderDevice> availableRFIDReaderList;
     private static ReaderDevice readerDevice;
     private static RFIDReader reader;
+    private Base.ConnectionStatus status = Base.ConnectionStatus.UnConnection;
     private boolean isConnecting = false ;
     private int maxPower = 270;
     private boolean isLocating = false ;
@@ -98,7 +99,51 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                 readers = new Readers(context,ENUM_TRANSPORT.ALL);
             //readers = new Readers(context, ENUM_TRANSPORT.SERVICE_SERIAL);
         }
-        AutoConnectDevice(result);
+        AutoConnectDevice2(result);
+    }
+
+     void AutoConnectDevice2(Result result){
+        Log.d(TAG, "CreateInstanceTask");
+                try {
+                    isConnecting = true;
+
+                    if (readers != null) {
+                        if (readers.GetAvailableRFIDReaderList() != null) {
+                        ArrayList<ReaderDevice> readersListArray = readers.GetAvailableRFIDReaderList();
+                        if (readersListArray.size() != 0) {
+                            readerDevice = readersListArray.get(0);
+                            reader = readerDevice.getRFIDReader();
+                            status = Base.ConnectionStatus.UnConnection;
+                            if (!reader.isConnected()) {
+                                // Establish connection to the RFID Reader
+                                reader.connect();
+                                ConfigureReader();
+                                isConnecting = false;
+                                status = Base.ConnectionStatus.ConnectionRealy;
+                            }
+                        } else {
+                            status = Base.ConnectionStatus.ConnectionError;
+                            isConnecting = false;
+                        }
+                    }
+                }
+
+                
+                } catch (OperationFailureException e) {
+                    status=Base.ConnectionStatus.UnConnection;
+
+                    String details = e.getStatusDescription();
+                    String a = e.getVendorMessage();
+                    e.printStackTrace();
+                } catch (InvalidUsageException er){
+                    status=Base.ConnectionStatus.UnConnection;
+
+                    er.printStackTrace();
+                }
+                HashMap<String, Object> map =new HashMap<>();
+                map.put("status",status.ordinal());
+                emit(Base.RfidEngineEvents.ConnectionStatus,map);
+
     }
 
 
@@ -126,13 +171,10 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                                 // Establish connection to the RFID Reader
                                 reader.connect();
                                 ConfigureReader();
-                                            isConnecting = false;
-
-                                
+                                isConnecting = false;
                             }
                         } else {
-                                        isConnecting = false;
-
+                            isConnecting = false;
                             return "No connectable device detected";
                         }
                     }
@@ -259,10 +301,15 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                 Log.d("status: before : ", String.valueOf(reader.isConnected()));
                 reader.Events.removeEventsListener(eventHandler);
                 reader.disconnect();
-               // reader = null;
+                reader = null;
+                status = Base.ConnectionStatus.UnConnection;
+                
                 readers.Dispose();
                 readers = null;
-                Log.d("status: after : ", String.valueOf(reader.isConnected()));
+
+                 HashMap<String, Object> map =new HashMap<>();
+                map.put("status",status.ordinal());
+                emit(Base.RfidEngineEvents.ConnectionStatus,map);
             }
         } catch (InvalidUsageException e) {
             e.printStackTrace();

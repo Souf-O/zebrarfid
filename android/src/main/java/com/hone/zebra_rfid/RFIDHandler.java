@@ -153,13 +153,13 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
 
             @Override
             protected void onPostExecute(String error) {
-                Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionError;
+                Base.ConnectionStatus status=Base.ConnectionStatus.ConnectionRealy;
                 super.onPostExecute(error);
                 isConnecting = false;
 
                 if (error != null) {
                     emit(Base.RfidEngineEvents.Error, transitionEntity(Base.ErrorResult.error(error)));
-                    status=Base.ConnectionStatus.ConnectionRealy;
+                    status=Base.ConnectionStatus.ConnectionError;
                 }
                 HashMap<String, Object> map =new HashMap<>();
                 map.put("status",status.ordinal());

@@ -681,9 +681,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            HashMap<String, Object> map =new HashMap<>();
-                            map.put("L1Status",true);
-                            emit(Base.RfidEngineEvents.L1Status,map);
+                            
                             handleTriggerPress(true);
                             return null;
                         }
@@ -692,9 +690,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            HashMap<String, Object> map =new HashMap<>();
-                            map.put("L1Status",false);
-                            emit(Base.RfidEngineEvents.L1Status,map);
+                          
                             handleTriggerPress(false);
 
                             return null;
@@ -742,15 +738,14 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
 
 
     public void handleTriggerPress(boolean pressed) {
+        HashMap<String, Object> map =new HashMap<>();
+        map.put("L1Status",pressed);
+        emit(Base.RfidEngineEvents.L1Status,map);
         if (pressed) {
-            HashMap<String, Object> map =new HashMap<>();
-            map.put("L1Status",true);
-            emit(Base.RfidEngineEvents.L1Status,map);
+            
             performInventory();
         } else{
-            HashMap<String, Object> map =new HashMap<>();
-            map.put("L1Status",false);
-            emit(Base.RfidEngineEvents.L1Status,map);
+            
             stopInventory();
 
         }

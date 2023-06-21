@@ -100,7 +100,6 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
             //readers = new Readers(context, ENUM_TRANSPORT.SERVICE_SERIAL);
         }
         AutoConnectDevice(result);
-        return String.valueOf(reader.isConnected());
     }
 
      void AutoConnectDevice2(Result result){

@@ -92,7 +92,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     }
 
     @SuppressLint("StaticFieldLeak")
-    public String connect(final Result result) {
+    public void connect(final Result result) {
         Readers.attach(this);
         isConnecting = true ;
         if (readers == null) {

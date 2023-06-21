@@ -92,14 +92,15 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
     }
 
     @SuppressLint("StaticFieldLeak")
-    public void connect(final Result result) {
+    public String connect(final Result result) {
         Readers.attach(this);
         isConnecting = true ;
         if (readers == null) {
                 readers = new Readers(context,ENUM_TRANSPORT.ALL);
             //readers = new Readers(context, ENUM_TRANSPORT.SERVICE_SERIAL);
         }
-        AutoConnectDevice2(result);
+        AutoConnectDevice(result);
+        return String.valueOf(reader.isConnected());
     }
 
      void AutoConnectDevice2(Result result){
@@ -172,6 +173,7 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                                 reader.connect();
                                 ConfigureReader();
                                 isConnecting = false;
+                                
                             }
                         } else {
                             isConnecting = false;
@@ -185,7 +187,6 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                     String details = e.getStatusDescription();
                     String a = e.getVendorMessage();
                     e.printStackTrace();
-                    return details;
                 } catch (InvalidUsageException er){
                     er.printStackTrace();
                 }
@@ -681,6 +682,9 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
+                            HashMap<String, Object> map =new HashMap<>();
+                            map.put("L1Status",true);
+                            emit(Base.RfidEngineEvents.L1Status,map);
                             handleTriggerPress(true);
                             return null;
                         }
@@ -689,7 +693,11 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
+                            HashMap<String, Object> map =new HashMap<>();
+                            map.put("L1Status",false);
+                            emit(Base.RfidEngineEvents.L1Status,map);
                             handleTriggerPress(false);
+
                             return null;
                         }
                     }.execute();
@@ -712,6 +720,19 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
                 dataArray.add(item);
                 new AsyncBatterieNotify().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataArray);
             }
+        
+            if (rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.INVENTORY_START_EVENT ){
+                HashMap<String, Object> map =new HashMap<>();
+                map.put("L1Status",true);
+                emit(Base.RfidEngineEvents.L1Status,map);
+            }
+            if (rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.INVENTORY_STOP_EVENT ){
+                HashMap<String, Object> map =new HashMap<>();
+                map.put("L1Status",false);
+                emit(Base.RfidEngineEvents.L1Status,map);
+            }
+            
+        
         }
         
 
@@ -723,9 +744,17 @@ public class RFIDHandler implements Readers.RFIDReaderEventHandler {
 
     public void handleTriggerPress(boolean pressed) {
         if (pressed) {
+            HashMap<String, Object> map =new HashMap<>();
+            map.put("L1Status",true);
+            emit(Base.RfidEngineEvents.L1Status,map);
             performInventory();
-        } else
+        } else{
+            HashMap<String, Object> map =new HashMap<>();
+            map.put("L1Status",false);
+            emit(Base.RfidEngineEvents.L1Status,map);
             stopInventory();
+
+        }
     }
 
 

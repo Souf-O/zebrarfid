@@ -29,6 +29,8 @@ public class Base {
         static String ReadRfid = "ReadRfid";
         static String batterieData = "batterieData";
         static String ConnectionStatus = "ConnectionStatus";
+        static String L1Status = "L1Status";
+
     }
 
 

@@ -72,6 +72,22 @@ class ZebraRfid {
     }
   }
 
+  static Future<dynamic> StartInvo() async {
+    try {
+      await _channel.invokeMethod('startInvo');
+    } catch (e) {
+      var a = e;
+    }
+  }
+
+  static Future<void> StopInvo() async {
+    try {
+      await _channel.invokeMethod('stopInvo');
+    } catch (e) {
+      print(e);
+    }
+  }
+
   static Future<dynamic> StartLocate(String tagId) async {
     try {
       await _addEventChannelHandler();

@@ -57,8 +57,8 @@ public class ZebraRfidPlugin implements FlutterPlugin, MethodCallHandler, Stream
                 Toast.makeText(context, txt, Toast.LENGTH_LONG).show();
                 break;
             case "connect":
-               // boolean  isBluetooth=call.argument("isBluetooth");
-                rfidHandler.connect(result);
+                String  isBluetooth = rfidHandler.connect(result);
+                    result.success(isBluetooth)         ;       
                 break;
             case "getReadersList":
                 List y = rfidHandler.getReadersList();                
@@ -72,11 +72,20 @@ public class ZebraRfidPlugin implements FlutterPlugin, MethodCallHandler, Stream
             case "write":
                 ///[TODO] implement write
                 break;
+            
+            
             case  "setPower":
                 int powerIndex = call.argument("powerIndex");
                 rfidHandler.setMaxPower(powerIndex);
                 result.success(null);
                 break;
+            
+            case "startInvo" : 
+                rfidHandler.handleTriggerPress(true);
+                break ; 
+            case "stopInvo" : 
+                rfidHandler.handleTriggerPress(false);
+                break ; 
             case "startLocate" : 
                 String tagId = call.argument("tagId");
                 rfidHandler.startLocate(tagId, result);

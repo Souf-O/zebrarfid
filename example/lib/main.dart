@@ -37,12 +37,36 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
+    ZebraRfid.setEventHandler(
+      ZebraEngineEventHandler(readRfidCallback: (datas) async {
+        print(datas.first.toJson());
+        addDatas(datas);
+      }, errorCallback: (err) {
+        ZebraRfid.toast(err.errorMessage!);
+      }, connectionStatusCallback: (status) {
+        setState(() {
+          connectionStatus = status;
+        });
+      }, l1statusCallback: (status) {
+        setState(() {
+          L1Status = status;
+        });
+      }),
+    );
+    ZebraRfid.connect().then((value) {
+      print("--------------------value---${value}------------");
+
+      setState(() {
+        isZebraConnected = true;
+      });
+    });
     super.initState();
     initPlatformState();
   }
 
   Map<String?, RfidData> rfidDatas = {};
   ReaderConnectionStatus connectionStatus = ReaderConnectionStatus.UnConnection;
+  bool L1Status = false;
   addDatas(List<RfidData> datas) async {
     for (var item in datas) {
       var data = rfidDatas[item.tagID];
@@ -81,7 +105,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Status  ${connectionStatus.index}'),
+          title: Text(
+              'Status  ${connectionStatus.index} and l1Status ${L1Status.toString()}'),
         ),
         body: Center(
             child: Column(
@@ -91,39 +116,13 @@ class _MyAppState extends State<MyApp> {
             Row(children: [
               MaterialButton(
                 onPressed: () async {
-                  ZebraRfid.setEventHandler(ZebraEngineEventHandler(
-                    readRfidCallback: (datas) async {
-                      print(datas.first.toJson());
-                      addDatas(datas);
-                    },
-                    errorCallback: (err) {
-                      ZebraRfid.toast(err.errorMessage!);
-                    },
-                    connectionStatusCallback: (status) {
-                      setState(() {
-                        connectionStatus = status;
-                      });
-                    },
-                  ));
-                  bool x = false;
-                  x = await ZebraRfid.isConnected;
-                  !x
-                      ? ZebraRfid.connect().then((value) {
-                          print(
-                              "--------------------value---${value}------------");
-
-                          setState(() {
-                            isZebraConnected = true;
-                          });
-                        })
-                      : ZebraRfid.disconnect();
+                  await ZebraRfid.StartLocate("4F4C30C30C30C30CF6C71DB3DE18");
                 },
                 child: Text("read"),
               ),
               MaterialButton(
                 onPressed: () async {
-                  // await ZebraRfid.linkProfiles();
-                  yy = await ZebraRfid.setDPO(1);
+                  await ZebraRfid.StopInvo(); // await ZebraRfid.linkProfiles();
                   // yy = i.toString();
                   setState(() {
                     rfidDatas = {};

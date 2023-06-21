@@ -6,13 +6,15 @@ typedef ErrorCallback = void Function(ErrorResult err);
 typedef ReadRfidCallback = void Function(List<RfidData> datas);
 typedef ReadBatterieCallback = void Function(List datas);
 typedef ConnectionStatusCallback = void Function(ReaderConnectionStatus status);
+typedef L1statusCallback = void Function(bool status);
 
 class ZebraEngineEventHandler {
   ZebraEngineEventHandler(
       {this.readRfidCallback,
       this.errorCallback,
       this.readBatterieCallback,
-      this.connectionStatusCallback});
+      this.connectionStatusCallback,
+      this.l1statusCallback});
 
   ///Read rfid tag callback
   ReadRfidCallback? readRfidCallback;
@@ -22,6 +24,7 @@ class ZebraEngineEventHandler {
 
   ///Connection Status
   ConnectionStatusCallback? connectionStatusCallback;
+  L1statusCallback? l1statusCallback;
 
   ///Exception error callback
   ErrorCallback? errorCallback;
@@ -46,8 +49,6 @@ class ZebraEngineEventHandler {
         print(results);
         readBatterieCallback?.call(results);
 
-        print(map);
-        readBatterieCallback?.call(results);
         break;
       case 'Error':
         var ss = ErrorResult.fromJson(map);
@@ -57,6 +58,10 @@ class ZebraEngineEventHandler {
         ReaderConnectionStatus status =
             ReaderConnectionStatus.values[map["status"] as int];
         connectionStatusCallback!.call(status);
+        break;
+      case 'L1Status':
+        bool l1Status = map["L1Status"] as bool;
+        l1statusCallback!.call(l1Status);
         break;
     }
   }
